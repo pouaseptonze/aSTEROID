@@ -1,4 +1,6 @@
 import random
+
+import pygame.image
 from pygame import Rect
 import core
 from pygame.math import Vector2
