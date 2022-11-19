@@ -206,6 +206,5 @@ def run():
         if (core.getKeyPressList("RETURN") and core.memory("Start") == 2) or (core.getkeyPress() and core.memory("Start") == 1):
             restart(False)
 
-#salut si ca marche pas je unintall py
 
 core.main(setup, run)
