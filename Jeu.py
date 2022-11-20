@@ -17,7 +17,10 @@ def tir(canon):
     v = Vector2(core.memory("Speed").x, core.memory("Speed").y)
     v.scale_to_length(core.memory("Speed").length() + 10)
     v = v.rotate(angle)
-    r = 5
+    if core.memory("points") < 30:
+        r = 5
+    if core.memory("points") >= 30:
+        r = 10
     c = (255, 255, 255)
     st = time.time()
     d = {"position": p, "speed": v, "radius": r, "start time": st, "color": c}
@@ -39,18 +42,19 @@ def asteroide():
     """
     la fonction retourne un carré qui représente l'astéroide à une position aléatoire
     """
-    L = 50
+    l = 50
     h = 50
-    x = random.randint(0, GetSystemMetrics(0) - L)
-    y = random.randint(0, GetSystemMetrics(1) - L)
-    return Rect(x, y, L, h)
+    x = random.randint(0, GetSystemMetrics(0) - l)
+    y = random.randint(0, GetSystemMetrics(1) - l)
+    return Rect(x, y, l, h)
+
 
 
 def explosion():
     for i in range(50):
         p = Vector2(core.memory("Position").x, core.memory("Position").y)
         v = Vector2(core.memory("Speed").x, core.memory("Speed").y)
-        v.scale_to_length(random.randint(10,20))
+        v.scale_to_length(random.randint(10, 20))
         v = v.rotate(random.randint(0, 360))
         r = 10
         c = (random.randint(50, 255), 0, 0)
@@ -98,15 +102,27 @@ def run():
         if core.getKeyPressList("SPACE"):
             if len(core.memory("projectile")) > 0:
                 if time.time() - core.memory("projectile")[-1]["start time"] > 0.2:
-                    tir(P2)
+                    if core.memory("points") < 10:
+                        tir(P2)
+                    if 10 <= core.memory("points") < 20:
+                        tir(P1)
+                        tir(P3)
+                    if core.memory("points") >= 20:
+                        tir(P1)
+                        tir(P2)
+                        tir(P3)
 
             else:
-                tir(P2)
+                if core.memory("points") < 10:
+                    tir(P2)
+                if 10 <= core.memory("points") < 20:
+                    tir(P1)
+                    tir(P3)
 
         for proj in core.memory("projectile"):
             proj["position"] = proj["position"] + proj["speed"]
             core.Draw.circle(proj["color"], proj["position"], proj["radius"])
-            if time.time() - proj["start time"] > 1:
+            if time.time() - proj["start time"] > 10:
                 core.memory("projectile").remove(proj)
 
         # gestion des astéroïdes
