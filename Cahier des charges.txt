@@ -1,0 +1,23 @@
+﻿WALLOIS Pierre                                                                        2A03-2        
+HABAR Florian
+
+
+                                Cahier des charges Jeu S3 info 
+
+
+
+
+Règles du jeu : 
+* Vaisseau qui doit survivre à des astéroïdes qui passent
+* Pour se défendre, il peut tirer sur ces astéroïdes
+* Il possède 3 vies
+* On perd une vie par astéroïdes
+* Score donné par la destruction d’astéroïdes
+* Les bordures renvoient de l’autre côté
+* le jeu s’organise selon plusieurs manches/vagues/niveaux
+* A chaque vague, le vaisseau devient plus fort mais il y a plus d’astéroïdes
+* pas de niveau final, ca s’arrête quand on perd
+* les astéroïdes ont une vitesse linéaire ou circulaire et leur taille est variable
+* le jeu doit se jouer en plein écran
+* quand on perd une vie, animation d’explosion 
+* il doit y avoir un menu de démarrage et de game over
