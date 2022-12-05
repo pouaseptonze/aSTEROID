@@ -7,8 +7,8 @@ from pygame.math import Vector2
 import time
 from win32api import GetSystemMetrics
 
-largeur = 1600
-hauteur = 800
+largeur = GetSystemMetrics(0)
+hauteur = GetSystemMetrics(1)
 
 
 def tir(canon, distance):
@@ -33,7 +33,6 @@ def restart(game_over):
     La fonction sert à redémarrer quand on a perdu
     """
     core.memory("Start", 0)
-    core.memory("target").append(asteroide())
     if game_over:
         core.memory("life", 2)
         core.memory("points", 0)
@@ -64,6 +63,16 @@ def explosion():
         core.memory("projectile").append(d)
 
 
+def generation():
+    if core.memory("level") == 1:
+        core.memory("target").append(asteroide())
+        core.memory("target").append(asteroide())
+    if core.memory("level") == 2:
+        core.memory("target").append(asteroide())
+        core.memory("target").append(asteroide())
+        core.memory("target").append(asteroide())
+
+
 def setup():
     core.fps = 60
     core.WINDOW_SIZE = [largeur, hauteur]
@@ -72,18 +81,18 @@ def setup():
     core.memory("Direction", Vector2(1, 0))
     core.memory("projectile", [])
     core.memory("target", [])
-    #core.memory("target").append(asteroide())
-    #core.memory("target").append(asteroide())
+    core.memory("level", 1)
+    generation()
     core.memory("points", 0)
     core.memory("Start", 1)
     core.memory("life", 2)
     core.memory("collision_time", 0)
     core.memory("cadence_de_tir", 0.2)
-    #core.memory("vie_des_projectiles", 2)
+
+    # core.memory("vie_des_projectiles", 2)
 
 
 def run():
-
     if core.memory("Start") == 0:
 
         core.cleanScreen()
@@ -123,24 +132,30 @@ def run():
             if time.time() > proj["end time"]:
                 core.memory("projectile").remove(proj)
 
-        # gestion des astéroïdes
+        # gestion des collisions avec les tirs
 
         for proj in core.memory("projectile"):
             for t in core.memory("target"):
                 if t.collidepoint(proj["position"].x, proj["position"].y):
-                    core.memory("target").append(asteroide())
+                    if core.memory("level") == 2:
+                        generation()
+                    else:
+                        core.memory("target").append(asteroide())
                     core.memory("target").remove(t)
                     core.memory("points", core.memory("points") + 1)
+                    if core.memory("points") == 2:
+                        core.memory("level", core.memory("level") + 1)
 
-        # Gestion des colisions
+        # Gestion des colisions avec astéroides
+
         for t in core.memory("target"):
-            if (t.collidepoint(P2.x, P2.y) or t.collidepoint(P1.x, P1.y) or t.collidepoint(P3.x, P3.y)) and core.memory("Start") == 0:
+            if (t.collidepoint(P2.x, P2.y) or t.collidepoint(P1.x, P1.y) or t.collidepoint(P3.x, P3.y)) and core.memory(
+                    "Start") == 0:
                 core.memory("collision_time", time.time())
                 explosion()
                 core.memory("target").remove(t)
                 core.memory("life", core.memory("life") - 1)
-                core.memory("Position", Vector2(largeur/2, hauteur/2))
-                core.memory("target").append(asteroide())
+                core.memory("Position", Vector2(largeur / 2, hauteur / 2))
 
                 if core.memory("life") == 0:
                     core.memory("Start", 3)
@@ -197,24 +212,25 @@ def run():
 
             core.Draw.polygon((255, 0, 0), (P1, P2, P3))
             core.Draw.text((255, 255, 255), "Points : " + str(core.memory("points")), (50, 50))
-            core.Draw.text((255, 255, 255), "Nombres de vie : " + str(core.memory("life")), (largeur - 400, 50))
+            core.Draw.text((255, 255, 255), "Nombre de vies : " + str(core.memory("life")), (largeur - 400, 50))
+            core.Draw.text((255, 255, 255), "Level : " + str(core.memory("level")), (50, 100))
             for t in core.memory("target"):
                 core.Draw.rect((255, 0, 255), t)
 
     else:
 
-        # Initiation
+        # Initialisation
 
         if core.memory("Start") == 1:
             core.Draw.text((255, 255, 255), "Appuyez sur une touche",
-                           (largeur / 2, hauteur / 2))
+                           (largeur / 2 - 150, hauteur / 2))
 
         # Restart
 
         elif core.memory("Start") == 3:
             core.Draw.text((255, 255, 255), "GAME OVER", (largeur / 2, hauteur / 3))
-            core.Draw.text((255, 255, 255), "Appuyez sur ECHAP pour quitter",(largeur / 2, hauteur / 4))
-            core.Draw.text((255, 255, 255), "Appuyez sur R pour Relancer",(largeur*3 / 4, hauteur / 4))
+            core.Draw.text((255, 255, 255), "Appuyez sur ECHAP pour quitter", (largeur / 2, 100))
+            core.Draw.text((255, 255, 255), "Appuyez sur R pour Relancer", (largeur / 2, 150))
             core.Draw.text((255, 255, 255), "Score : " + str(core.memory("points")), (largeur - 2500, 50))
 
             if core.getKeyPressList("ESCAPE"):
@@ -222,7 +238,8 @@ def run():
             if core.getKeyPressList("r"):
                 restart(True)
 
-        if (core.getKeyPressList("RETURN") and core.memory("Start") == 2) or (core.getkeyPress() and core.memory("Start") == 1):
+        if (core.getKeyPressList("RETURN") and core.memory("Start") == 2) or (
+                core.getkeyPress() and core.memory("Start") == 1):
             restart(False)
 
 
