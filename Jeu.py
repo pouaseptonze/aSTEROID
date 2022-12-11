@@ -241,6 +241,57 @@ def run():
         if (core.getKeyPressList("RETURN") and core.memory("Start") == 2) or (
                 core.getkeyPress() and core.memory("Start") == 1):
             restart(False)
+            
+#core.memory(("target"),[])
+#core.memory("target",Rect(random.randint(50,750),random.randint(50,750),40,40))
+#
+#
+#
+#def creationtarget():
+#    P=Vector2(random.randint(50,750),random.randint(50,50))
+#    Px = random.randint(50, 750)
+#    Py = random.randint(50, 750)
+#    V= Vector2(random.randint(-1,1),random.randint(-1,1))
+#    Vx= random.randint(-5,5)
+#    Vy = random.randint(-5,5)
+#    r = random.randint(10,50)
+#    l = random.randint(10, 50)
+#    h = random.randint(10, 50)
+#    c = (random.randint(10,250),random.randint(10,250),random.randint(10,250))
+#    targ= {"Px":Px,"Py":Py,"Vx":Vx,"Vy":Vy, "rayon":r,"couleur":c,"largeur":l,"hauteur":h}
+#    core.memory("target").append(targ)
+#
+#
+#nombre de target
+#if len(core.memory("target")) < 10 :
+#        creationtarget2()
+#
+#   #bordure fenetre target
+#    for targ in core.memory("target"):
+#      if targ["Px"] > 800:
+#            targ["Px"] = 0
+#   for targ in core.memory("target"):
+#       if targ["Px"] < 0:
+#            targ["Px"] = 800
+#
+#    for targ in core.memory("target"):
+#        if targ["Py"] > 800:
+#            targ["Py"] = 0
+#    for targ in core.memory("target"):
+#        if targ["Py"] < 0:
+#            targ["Py"] = 800
+#
+#
+#
+# Dessin target
+#   for targ in core.memory("target"):
+#        #core.Draw.rect((255,255,255),(100,100,10,10))
+#        core.Draw.rect(targ["couleur"],(targ["Px"],targ["Py"],targ["largeur"],targ["hauteur"]))
+#
+#for targ in core.memory("target"):
+#        targ["Px"] = targ["Px"] + targ["Vx"]
+#        targ["Py"] = targ["Py"] + targ["Vy"]
+
 
 
 core.main(setup, run)
