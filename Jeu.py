@@ -63,14 +63,17 @@ def explosion():
         core.memory("projectile").append(d)
 
 
-def generation():
-    if core.memory("level") == 1:
-        core.memory("target").append(asteroide())
-        core.memory("target").append(asteroide())
-    if core.memory("level") == 2:
-        core.memory("target").append(asteroide())
-        core.memory("target").append(asteroide())
-        core.memory("target").append(asteroide())
+def creationtarget():
+    Px = random.randint(50, GetSystemMetrics(0) - 50)
+    Py = random.randint(50, GetSystemMetrics(1) - 50)
+    Vx = random.randint(-3, 3)
+    Vy = random.randint(-3, 3)
+    r = random.randint(10, 50)
+    l = random.randint(10, 50)
+    h = random.randint(10, 50)
+    c = (random.randint(10, 250), random.randint(10, 250), random.randint(10, 250))
+    targ = {"Px": Px, "Py": Py, "Vx": Vx, "Vy": Vy, "rayon": r, "couleur": c, "largeur": l, "hauteur": h}
+    core.memory("target").append(targ)
 
 
 def setup():
@@ -80,16 +83,13 @@ def setup():
     core.memory("Speed", Vector2(5, 0))
     core.memory("Direction", Vector2(1, 0))
     core.memory("projectile", [])
-    core.memory("target", [])
     core.memory("level", 1)
-    generation()
     core.memory("points", 0)
     core.memory("Start", 1)
     core.memory("life", 2)
     core.memory("collision_time", 0)
     core.memory("cadence_de_tir", 0.2)
-
-    # core.memory("vie_des_projectiles", 2)
+    core.memory("target", [])
 
 
 def run():
@@ -132,33 +132,53 @@ def run():
             if time.time() > proj["end time"]:
                 core.memory("projectile").remove(proj)
 
-        # gestion des collisions avec les tirs
+                # gestion des collisions avec les tirs
 
-        for proj in core.memory("projectile"):
-            for t in core.memory("target"):
-                if t.collidepoint(proj["position"].x, proj["position"].y):
-                    if core.memory("level") == 2:
-                        generation()
-                    else:
-                        core.memory("target").append(asteroide())
-                    core.memory("target").remove(t)
-                    core.memory("points", core.memory("points") + 1)
-                    if core.memory("points") == 2:
-                        core.memory("level", core.memory("level") + 1)
+                # for proj in core.memory("projectile"):
+                #     for t in core.memory("target"):
+                #         if t.collidepoint(proj["position"].x, proj["position"].y):
+                #             core.memory("target").remove(t)
+                #             core.memory("points", core.memory("points") + 1)
 
-        # Gestion des colisions avec astéroides
+                # Gestion des colisions avec astéroides
 
-        for t in core.memory("target"):
-            if (t.collidepoint(P2.x, P2.y) or t.collidepoint(P1.x, P1.y) or t.collidepoint(P3.x, P3.y)) and core.memory(
-                    "Start") == 0:
-                core.memory("collision_time", time.time())
-                explosion()
-                core.memory("target").remove(t)
-                core.memory("life", core.memory("life") - 1)
-                core.memory("Position", Vector2(largeur / 2, hauteur / 2))
+                # for t in core.memory("target"):
+                #     if (t.collidepoint(P2.x, P2.y) or t.collidepoint(P1.x, P1.y) or t.collidepoint(P3.x,P3.y)) and core.memory("Start") == 0:
+                #         core.memory("collision_time", time.time())
+                #         explosion()
+                #         core.memory("target").remove(t)
+                #         core.memory("life", core.memory("life") - 1)
+                #         core.memory("Position", Vector2(largeur / 2, hauteur / 2))
 
                 if core.memory("life") == 0:
                     core.memory("Start", 3)
+
+        # mouvement des astéroïdes
+
+        for targ in core.memory("target"):
+            targ["Px"] = targ["Px"] + targ["Vx"]
+            targ["Py"] = targ["Py"] + targ["Vy"]
+
+        # nombre de target
+        if len(core.memory("target")) < 10:
+            creationtarget()
+
+        # bordure fenetre target
+        for targ in core.memory("target"):
+            if targ["Px"] > GetSystemMetrics(0):
+                targ["Px"] = 0
+
+        for targ in core.memory("target"):
+            if targ["Px"] < 0:
+                targ["Px"] = GetSystemMetrics(0)
+
+        for targ in core.memory("target"):
+            if targ["Py"] > GetSystemMetrics(1):
+                targ["Py"] = 0
+
+        for targ in core.memory("target"):
+            if targ["Py"] < 0:
+                targ["Py"] = GetSystemMetrics(1)
 
         # Movement
 
@@ -214,8 +234,9 @@ def run():
             core.Draw.text((255, 255, 255), "Points : " + str(core.memory("points")), (50, 50))
             core.Draw.text((255, 255, 255), "Nombre de vies : " + str(core.memory("life")), (largeur - 400, 50))
             core.Draw.text((255, 255, 255), "Level : " + str(core.memory("level")), (50, 100))
-            for t in core.memory("target"):
-                core.Draw.rect((255, 0, 255), t)
+            for targ in core.memory("target"):
+                core.Draw.rect((255, 255, 255), (100, 100, 10, 10))
+                core.Draw.rect(targ["couleur"], (targ["Px"], targ["Py"], targ["largeur"], targ["hauteur"]))
 
     else:
 
@@ -241,57 +262,6 @@ def run():
         if (core.getKeyPressList("RETURN") and core.memory("Start") == 2) or (
                 core.getkeyPress() and core.memory("Start") == 1):
             restart(False)
-            
-#core.memory(("target"),[])
-#core.memory("target",Rect(random.randint(50,750),random.randint(50,750),40,40))
-#
-#
-#
-#def creationtarget():
-#    P=Vector2(random.randint(50,750),random.randint(50,50))
-#    Px = random.randint(50, 750)
-#    Py = random.randint(50, 750)
-#    V= Vector2(random.randint(-1,1),random.randint(-1,1))
-#    Vx= random.randint(-5,5)
-#    Vy = random.randint(-5,5)
-#    r = random.randint(10,50)
-#    l = random.randint(10, 50)
-#    h = random.randint(10, 50)
-#    c = (random.randint(10,250),random.randint(10,250),random.randint(10,250))
-#    targ= {"Px":Px,"Py":Py,"Vx":Vx,"Vy":Vy, "rayon":r,"couleur":c,"largeur":l,"hauteur":h}
-#    core.memory("target").append(targ)
-#
-#
-#nombre de target
-#if len(core.memory("target")) < 10 :
-#        creationtarget2()
-#
-#   #bordure fenetre target
-#    for targ in core.memory("target"):
-#      if targ["Px"] > 800:
-#            targ["Px"] = 0
-#   for targ in core.memory("target"):
-#       if targ["Px"] < 0:
-#            targ["Px"] = 800
-#
-#    for targ in core.memory("target"):
-#        if targ["Py"] > 800:
-#            targ["Py"] = 0
-#    for targ in core.memory("target"):
-#        if targ["Py"] < 0:
-#            targ["Py"] = 800
-#
-#
-#
-# Dessin target
-#   for targ in core.memory("target"):
-#        #core.Draw.rect((255,255,255),(100,100,10,10))
-#        core.Draw.rect(targ["couleur"],(targ["Px"],targ["Py"],targ["largeur"],targ["hauteur"]))
-#
-#for targ in core.memory("target"):
-#        targ["Px"] = targ["Px"] + targ["Vx"]
-#        targ["Py"] = targ["Py"] + targ["Vy"]
-
 
 
 core.main(setup, run)
