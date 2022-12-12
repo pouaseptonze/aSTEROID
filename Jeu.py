@@ -7,8 +7,24 @@ from pygame.math import Vector2
 import time
 from win32api import GetSystemMetrics
 
-largeur = GetSystemMetrics(0)
-hauteur = GetSystemMetrics(1)
+largeur = 1500
+hauteur = 1500
+
+
+def level(nbasteroid, niveau):
+    """
+    la fonction détermine si on a détruit tous les astéroïdes pour changer de niveaux, en fonction des niveaux,
+    elle génère des astéroïdes pour le niveau suivant
+    """
+    if nbasteroid < 1 or niveau == 0:
+        niveau = niveau + 1
+        if niveau > 1:
+            core.memory("temps_niveau", time.time())
+            core.memory("message", "Passage au niveau " + str(niveau))
+        for i in range(1, 3 + 2 * niveau):
+            creationtarget()
+    return niveau
+
 
 
 def tir(canon, distance):
@@ -36,6 +52,8 @@ def restart(game_over):
     if game_over:
         core.memory("life", 2)
         core.memory("points", 0)
+        core.memory("level", 0)
+        core.memory("target").clear()
 
 
 def asteroide():
@@ -60,19 +78,26 @@ def explosion():
         st = time.time()
         et = time.time() + random.randint(1, 2)
         d = {"position": p, "speed": v, "radius": r, "start time": st, "color": c, "end time": et}
-        core.memory("projectile").append(d)
+        core.memory("debris").append(d)
 
 
 def creationtarget():
-    Px = random.randint(50, GetSystemMetrics(0) - 50)
-    Py = random.randint(50, GetSystemMetrics(1) - 50)
-    Vx = random.randint(-3, 3)
-    Vy = random.randint(-3, 3)
-    r = random.randint(10, 50)
-    l = random.randint(10, 50)
-    h = random.randint(10, 50)
+    Px = random.randint(50, largeur - 50)
+    Py = random.randint(50, hauteur - 50)
+    Vx = random.randint(-1, 1)
+    Vy = random.randint(-1, 1)
+    l = random.randint(50, 100)
+    h = random.randint(50, 100)
     c = (random.randint(10, 250), random.randint(10, 250), random.randint(10, 250))
-    targ = {"Px": Px, "Py": Py, "Vx": Vx, "Vy": Vy, "rayon": r, "couleur": c, "largeur": l, "hauteur": h}
+    targ = {"Px": Px, "Py": Py, "Vx": Vx, "Vy": Vy, "couleur": c, "largeur": l, "hauteur": h}
+    core.memory("target").append(targ)
+
+
+def creationpetittarget(Px, Py, l, h):
+    Vx = random.randint(-1, 1)
+    Vy = random.randint(-1, 1)
+    c = (random.randint(10, 250), random.randint(10, 250), random.randint(10, 250))
+    targ = {"Px": Px, "Py": Py, "Vx": Vx, "Vy": Vy, "couleur": c, "largeur": l, "hauteur": h}
     core.memory("target").append(targ)
 
 
@@ -80,16 +105,21 @@ def setup():
     core.fps = 60
     core.WINDOW_SIZE = [largeur, hauteur]
     core.memory("Position", Vector2(500, 500))
-    core.memory("Speed", Vector2(5, 0))
+    core.memory("Speed", Vector2(2, 0))
     core.memory("Direction", Vector2(1, 0))
     core.memory("projectile", [])
-    core.memory("level", 1)
+    core.memory("level", 0)
     core.memory("points", 0)
     core.memory("Start", 1)
     core.memory("life", 2)
     core.memory("collision_time", 0)
     core.memory("cadence_de_tir", 0.2)
     core.memory("target", [])
+    core.memory("debris", [])
+    core.memory("tir", core.Sound("Tir.mp3"))
+    core.memory("son_tir", 0)
+    core.memory("message", "")
+    core.memory("temps_niveau", 0)
 
 
 def run():
@@ -115,6 +145,9 @@ def run():
         # gestion des projectiles
 
         if core.getKeyPressList("SPACE"):
+            if time.time() - core.memory("son_tir") > 0.2:
+                core.memory("son_tir", time.time())
+                core.memory("tir").playin()
             if len(core.memory("projectile")) > 0:
                 if time.time() - core.memory("projectile")[-1]["start time"] > core.memory("cadence_de_tir"):
                     if core.memory("points") < 20:
@@ -132,26 +165,44 @@ def run():
             if time.time() > proj["end time"]:
                 core.memory("projectile").remove(proj)
 
-                # gestion des collisions avec les tirs
+        for proj in core.memory("debris"):
+            proj["position"] = proj["position"] + proj["speed"]
+            core.Draw.circle(proj["color"], proj["position"], proj["radius"])
+            if time.time() > proj["end time"]:
+                core.memory("debris").remove(proj)
 
-                # for proj in core.memory("projectile"):
-                #     for t in core.memory("target"):
-                #         if t.collidepoint(proj["position"].x, proj["position"].y):
-                #             core.memory("target").remove(t)
-                #             core.memory("points", core.memory("points") + 1)
 
-                # Gestion des colisions avec astéroides
+        # gestion des collisions avec les tirs
 
-                # for t in core.memory("target"):
-                #     if (t.collidepoint(P2.x, P2.y) or t.collidepoint(P1.x, P1.y) or t.collidepoint(P3.x,P3.y)) and core.memory("Start") == 0:
-                #         core.memory("collision_time", time.time())
-                #         explosion()
-                #         core.memory("target").remove(t)
-                #         core.memory("life", core.memory("life") - 1)
-                #         core.memory("Position", Vector2(largeur / 2, hauteur / 2))
+        for proj in core.memory("projectile"):
+            for t in core.memory("target"):
+                tr = Rect(t["Px"], t["Py"], t["largeur"], t["hauteur"])
+                if tr.collidepoint(proj["position"].x, proj["position"].y):
+                    if t["largeur"] / 2 > 26 or t["hauteur"] / 2 > 26:
+                        creationpetittarget(t["Px"], t["Py"], t["largeur"] / 2, t["hauteur"] / 2)
+                        creationpetittarget(t["Px"], t["Py"], t["largeur"] / 2, t["hauteur"] / 2)
+                    core.memory("target").remove(t)
+                    core.memory("projectile").clear()
+                    core.memory("points", core.memory("points") + 1)
 
-                if core.memory("life") == 0:
+        # Gestion des colisions avec astéroides
+
+        for t in core.memory("target"):
+            tr = Rect(t["Px"], t["Py"], t["largeur"], t["hauteur"])
+            if (tr.collidepoint(P2.x, P2.y) or tr.collidepoint(P1.x, P1.y) or tr.collidepoint(P3.x,
+                                                                                              P3.y)) and core.memory(
+                "Start") == 0:
+                core.memory("collision_time", time.time())
+                explosion()
+                core.memory("target").remove(t)
+                core.memory("life", core.memory("life") - 1)
+                core.memory("Position", Vector2(largeur / 2, hauteur / 2))
+
+            if core.memory("life") < 1:
+                if time.time() - core.memory("collision_time") > 2:
                     core.memory("Start", 3)
+
+        print(len(core.memory("target")))
 
         # mouvement des astéroïdes
 
@@ -160,25 +211,30 @@ def run():
             targ["Py"] = targ["Py"] + targ["Vy"]
 
         # nombre de target
-        if len(core.memory("target")) < 10:
-            creationtarget()
+        core.memory("level", level(len(core.memory("target")), core.memory("level")))
+
+        # Affichage changement de niveaux
+
+        if time.time() - core.memory("temps_niveau") < 2:
+            core.Draw.text((255, 255, 255), core.memory("message"), (largeur / 2, hauteur / 2))
+
 
         # bordure fenetre target
         for targ in core.memory("target"):
-            if targ["Px"] > GetSystemMetrics(0):
+            if targ["Px"] > largeur:
                 targ["Px"] = 0
 
         for targ in core.memory("target"):
             if targ["Px"] < 0:
-                targ["Px"] = GetSystemMetrics(0)
+                targ["Px"] = largeur
 
         for targ in core.memory("target"):
-            if targ["Py"] > GetSystemMetrics(1):
+            if targ["Py"] > hauteur:
                 targ["Py"] = 0
 
         for targ in core.memory("target"):
             if targ["Py"] < 0:
-                targ["Py"] = GetSystemMetrics(1)
+                targ["Py"] = hauteur
 
         # Movement
 
@@ -224,10 +280,6 @@ def run():
             elif core.memory("Position").y < 0:
                 core.memory("Position").y = hauteur
 
-            # core.Draw.line((255, 255, 0), (core.memory("Position").x, core.memory("Position").y), (
-            #     core.memory("Position").x + core.memory("Speed").x * 50,
-            #     core.memory("Position").y + core.memory("Speed").y * 50))
-
             # Draw
 
             core.Draw.polygon((255, 0, 0), (P1, P2, P3))
@@ -235,7 +287,6 @@ def run():
             core.Draw.text((255, 255, 255), "Nombre de vies : " + str(core.memory("life")), (largeur - 400, 50))
             core.Draw.text((255, 255, 255), "Level : " + str(core.memory("level")), (50, 100))
             for targ in core.memory("target"):
-                core.Draw.rect((255, 255, 255), (100, 100, 10, 10))
                 core.Draw.rect(targ["couleur"], (targ["Px"], targ["Py"], targ["largeur"], targ["hauteur"]))
 
     else:
