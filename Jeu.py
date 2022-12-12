@@ -8,7 +8,7 @@ import time
 from win32api import GetSystemMetrics
 
 largeur = 1500
-hauteur = 1500
+hauteur = 1000
 
 
 def level(nbasteroid, niveau):
