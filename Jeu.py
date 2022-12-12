@@ -22,7 +22,7 @@ def level(nbasteroid, niveau):
             core.memory("temps_niveau", time.time())
             core.memory("message", "Passage au niveau " + str(niveau))
         for i in range(1, 3 + 2 * niveau):
-            creationtarget()
+            creationtarget(niveau)
     return niveau
 
 
@@ -81,11 +81,11 @@ def explosion():
         core.memory("debris").append(d)
 
 
-def creationtarget():
+def creationtarget(bonus_speed):
     Px = random.randint(50, largeur - 50)
     Py = random.randint(50, hauteur - 50)
-    Vx = random.randint(-1, 1)
-    Vy = random.randint(-1, 1)
+    Vx = random.randint(-1 * bonus_speed, 1 * bonus_speed)
+    Vy = random.randint(-1 * bonus_speed, 1 * bonus_speed)
     l = random.randint(50, 100)
     h = random.randint(50, 100)
     c = (random.randint(10, 250), random.randint(10, 250), random.randint(10, 250))
@@ -123,9 +123,16 @@ def setup():
 
 
 def run():
-    if core.memory("Start") == 0:
+    core.cleanScreen()
 
-        core.cleanScreen()
+    if time.time() - core.memory("collision_time") < 2:
+        for proj in core.memory("debris"):
+            proj["position"] = proj["position"] + proj["speed"]
+            core.Draw.circle(proj["color"], proj["position"], proj["radius"])
+            if time.time() > proj["end time"]:
+                core.memory("debris").remove(proj)
+
+    elif core.memory("Start") == 0:
 
         # DEF points du vaisseau
         P1Bis = core.memory("Direction").rotate(90)
@@ -165,13 +172,6 @@ def run():
             if time.time() > proj["end time"]:
                 core.memory("projectile").remove(proj)
 
-        for proj in core.memory("debris"):
-            proj["position"] = proj["position"] + proj["speed"]
-            core.Draw.circle(proj["color"], proj["position"], proj["radius"])
-            if time.time() > proj["end time"]:
-                core.memory("debris").remove(proj)
-
-
         # gestion des collisions avec les tirs
 
         for proj in core.memory("projectile"):
@@ -199,10 +199,7 @@ def run():
                 core.memory("Position", Vector2(largeur / 2, hauteur / 2))
 
             if core.memory("life") < 1:
-                if time.time() - core.memory("collision_time") > 2:
-                    core.memory("Start", 3)
-
-        print(len(core.memory("target")))
+                core.memory("Start", 3)
 
         # mouvement des astéroïdes
 
