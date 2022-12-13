@@ -1,14 +1,19 @@
 import random
-
-import pygame.image
 from pygame import Rect
 import core
 from pygame.math import Vector2
 import time
 from win32api import GetSystemMetrics
 
-largeur = 1500
-hauteur = 1000
+largeur = GetSystemMetrics(0)
+hauteur = GetSystemMetrics(1)
+
+
+def fond():
+    core.memory("fond", core.Texture("./FOND.jpg", (1, 1), 0, (largeur, hauteur)))
+    if not core.memory("fond").ready:
+        core.memory("fond").load()
+    core.memory("fond").show()
 
 
 def level(nbasteroid, niveau):
@@ -24,7 +29,6 @@ def level(nbasteroid, niveau):
         for i in range(1, 3 + 2 * niveau):
             creationtarget(niveau)
     return niveau
-
 
 
 def tir(canon, distance):
@@ -125,6 +129,8 @@ def setup():
 def run():
     core.cleanScreen()
 
+    fond()
+
     if time.time() - core.memory("collision_time") < 2:
         for proj in core.memory("debris"):
             proj["position"] = proj["position"] + proj["speed"]
@@ -214,7 +220,6 @@ def run():
 
         if time.time() - core.memory("temps_niveau") < 2:
             core.Draw.text((255, 255, 255), core.memory("message"), (largeur / 2, hauteur / 2))
-
 
         # bordure fenetre target
         for targ in core.memory("target"):
